@@ -1,0 +1,72 @@
+server:
+   alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets:
+            - "prometheus-alertmanager.default.svc.cluster.local:9093"
+serverFiles:
+  alerting_rules.yml:
+    groups:
+      - name: KafkaTopicsReplicas.rule
+        rules:
+          - alert: KafkaTopicsReplicas
+            expr: sum(kafka_topic_partition_in_sync_replica) by (topic) < 3
+            for: 0m
+            labels:
+              severity: critical
+              alarm: slack
+            annotations:
+              summary: Kafka topics replicas (instance {{ $labels.instance }})
+              description: "Kafka topic in-sync partition\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      - name: KafkaConsumersGroup.rule
+        rules:
+          - alert: KafkaConsumersGroup
+            expr: sum(kafka_consumergroup_lag) by (consumergroup) > 50
+            for: 1m
+            labels:
+              severity: critical
+              alarm: page
+            annotations:
+              summary: Kafka consumers group (instance {{ $labels.instance }})
+              description: "Kafka consumers group\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      - name: KafkaBrokerDown.rule
+        rules:
+          - alert: KafkaBrokerDown
+            expr: kafka_brokers < 3
+            for: 0m
+            labels:
+              severity: critical
+              alarm: page
+            annotations:
+              Summary: "Kafka broker *{{ $labels.instance }}* alert status"
+              description: "One of the Kafka broker *{{ $labels.instance }}* is down."
+alertmanager:
+  config:
+    enabled: true
+    global:
+      resolve_timeout: 1m
+      slack_api_url: 'https://hooks.slack.com/services/FJROORM/DJIII445/5eZMpbDjsnksnkn'
+    route:
+      receiver: 'slack-alert'
+      group_by: [ 'alertname', 'cluster' ]
+      routes:
+        - receiver: slack-alert
+          matchers:
+            - alarm=slack
+          continue: true
+        - receiver: page-alert
+          group_by: [ 'alertname' ]
+          matchers:
+            - alarm=page
+          continue: true
+    receivers:
+      - name: slack-alert
+        slack_configs:
+          - channel: '#testing'
+            send_resolved: true
+      - name: page-alert
+        pagerduty_configs:
+          - send_resolved: true
+            routing_key: jskkssowwwww
+    templates:
+      - /etc/alertmanager/*.tmpl
