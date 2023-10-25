@@ -125,7 +125,7 @@ make minikube-delete
     - KRaft simplifies Kafka’s architecture by removing the need for a separate coordination service. Kafka users and operators only have to deal with one system instead of two.
     - Raft uses quorum in which its requires majority of nodes to be running e.g a three-node controller cluster can survive one failure.
     - Replication factor of 3 because it will provide the right balance between performance and fault tolerance, also allows Kafka to provide high availability of data and prevent data loss if the broker goes down or cannot handle the request.
-    - Partitioning of 3 so that `posts` topic can be distributed among the 3 brokers in the clusters for faster data rerieval and processing.
+    - Partitioning of 3 so that `posts` topic can be distributed among the 3 brokers in the clusters for faster data rerieval and processing. Also, for high throughput and scalability by distributing the load across multiple consumers, each handling a subset of the partitions.
     - Kafka deploys as statefulset because its stateful app and k8s statefulset provides pods stable hostnames/name which is needed to maintain cluster communications. Pods get started in sequential order to be highly available.
     - Headless k8s service is used allows direct access to endpoints on the pod from within the cluster (rather than providing a single endpoint for multiple pods). This allows Kafka to control which pod is responsible for handling requests based on which broker is the leader for a requested topic.
     - Topic is created when the cluster start but i would rather recommend that producer application create the topic if its not yet created or using kafka web ui to create and manage kafka cluster.
@@ -142,3 +142,11 @@ make minikube-delete
     - Deploy grafana, prometheus, alertmanager and kafka-exporter using official helm chart.
     - Monitoring directory having helm chart value files for grafana and prometheus.
     - This deployment handles all configurations with no manual intervention.
+
+* Makefile:
+    - It makes running commands more concise and clear to read.
+    - it will make the presentation to be more systematic and efficient.
+
+* Helm: 
+    - it is very handy to maintains k8s manifest files template and be used for different application deployment.
+    - 
